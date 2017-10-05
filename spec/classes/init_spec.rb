@@ -13,14 +13,14 @@ describe 'tftp' do
         should contain_class('tftp::service')
       end
 
-      it 'should install packages' do
+      it 'should install default package' do
         tftp_package = case facts[:osfamily]
                        when 'RedHat'
                          'tftp-server'
                        when 'Debian'
                          'tftpd-hpa'
-                       when 'FreeBSD'
-                           'tftp-hpa'
+                       else
+                         'tftp-hpa'
                        end
 
         should contain_package(tftp_package).with({
@@ -28,7 +28,8 @@ describe 'tftp' do
           :alias  => 'tftp-server',
         })
 
-        if facts[:operatingsystem] == 'Debian' && facts[:operatingsystemrelease].start_with?('8.')
+        if (facts[:operatingsystem] == 'Debian' && facts[:operatingsystemrelease].start_with?('8.')) ||
+           (facts[:operatingsystem] == 'Ubuntu' && facts[:operatingsystemrelease].start_with?('16.'))
           should contain_package('pxelinux').with_ensure('installed')
           should contain_package('syslinux-common').with_ensure('installed')
         else
@@ -51,11 +52,12 @@ describe 'tftp' do
             :per_source  => '11',
           })
 
-          should contain_file('/etc/tftpd.map').
-            with_content(%r{^# Convert backslashes to slashes}).
-            with_mode('0644')
+          should contain_file('/etc/tftpd.map').with({
+            :source => 'puppet:///modules/tftp/tftpd.map',
+            :mode   => '0644',
+          })
 
-          should contain_file('/var/lib/tftpboot/').with({
+          should contain_file('/var/lib/tftpboot').with({
             :ensure => 'directory',
             :notify => 'Class[Xinetd]',
           })
@@ -78,6 +80,20 @@ describe 'tftp' do
             :subscribe => 'Class[Tftp::Config]',
           })
         end
+      elsif facts[:osfamily] == 'Archlinux'
+        it 'should not configure xinetd' do
+          should_not contain_class('xinetd')
+          should_not contain_xinetd__service('tftp')
+        end
+
+        it 'should contain the service' do
+          should contain_service('tftpd.socket').with({
+            :ensure    => 'running',
+            :enable    => true,
+            :alias     => 'tftpd',
+            :subscribe => 'Class[Tftp::Config]',
+          })
+        end
 
       else
         it 'should not configure xinetd' do
@@ -92,6 +108,10 @@ describe 'tftp' do
             :alias     => 'tftpd',
             :subscribe => 'Class[Tftp::Config]',
           })
+        end
+
+        if facts[:operatingsystem] == 'Ubuntu' && facts[:operatingsystemrelease] == '16.04'
+          it { should contain_service('tftpd-hpa').with_provider('systemd') }
         end
       end
 
@@ -110,6 +130,28 @@ describe 'tftp' do
           # not supported
         end
       end
+
+      context 'with custom tftp package set to tftp-hpa-destruct' do
+        let :params do {
+          :package => 'tftp-hpa-destruct',
+        } end
+
+        it 'should install custom tftp package' do
+          should contain_package('tftp-hpa-destruct').with({
+            :ensure => 'installed',
+            :alias  => 'tftp-server',
+          })
+        end
+      end
+
+      context 'with custom syslinux package set to my-own-syslinux' do
+        let :params do {
+          :syslinux_package => 'my-own-syslinux',
+        } end
+        it 'should install custom syslinux package' do
+          should contain_package('my-own-syslinux').with({:ensure => 'installed',})
+        end
+      end
     end
   end
 
@@ -117,7 +159,8 @@ describe 'tftp' do
     let :facts do
       {
         :operatingsystem => 'Amazon',
-        :osfamily        => 'Linux',
+        :osfamily => 'Linux',
+        :os => { :name => 'Amazon', :family => 'Linux' }
       }
     end
 
@@ -149,11 +192,12 @@ describe 'tftp' do
         :per_source  => '11',
       })
 
-      should contain_file('/etc/tftpd.map').
-        with_content(%r{^# Convert backslashes to slashes}).
-        with_mode('0644')
+      should contain_file('/etc/tftpd.map').with({
+        :source => 'puppet:///modules/tftp/tftpd.map',
+        :mode   => '0644',
+      })
 
-      should contain_file('/var/lib/tftpboot/').with({
+      should contain_file('/var/lib/tftpboot').with({
         :ensure => 'directory',
         :notify => 'Class[Xinetd]',
       })
@@ -161,29 +205,6 @@ describe 'tftp' do
 
     it 'should not contain the service' do
       should_not contain_service('tftpd-hpa')
-    end
-  end
-
-  context 'on unsupported Linux operatingsystem' do
-    let :facts do
-      {
-        :operatingsystem => 'unsupported',
-        :osfamily        => 'Linux',
-      }
-    end
-
-    it 'should fail' do
-      should raise_error(Puppet::Error, /: This module does not support operatingsystem #{facts[:operatingsystem]}/)
-    end
-  end
-
-  context 'on unsupported osfamily' do
-    let :facts do
-      {:osfamily => 'unsupported'}
-    end
-
-    it 'should fail' do
-      should raise_error(Puppet::Error, /: This module does not support osfamily #{facts[:osfamily]}/)
     end
   end
 end

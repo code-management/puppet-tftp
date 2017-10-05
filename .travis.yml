@@ -3,51 +3,36 @@
 #   https://github.com/theforeman/foreman-installer-modulesync
 rvm:
   - 2.1.5
-  - 2.0.0
-  - 1.9.3
-  - 1.8.7
+  - 2.2.6
+  - 2.3.0
+  - 2.4.1
+
 env:
-  # First test the major distros
-  - PUPPET_VERSION=4.0 ONLY_OS=centos-7-x86_64,ubuntu-14-x86_64
-  - PUPPET_VERSION=3.5 ONLY_OS=centos-7-x86_64,ubuntu-14-x86_64 FUTURE_PARSER=yes TRUSTED_NODE_DATA=yes
-  - PUPPET_VERSION=3.5 ONLY_OS=centos-7-x86_64,ubuntu-14-x86_64
-  # Test operating systems with ruby 1.8.7 explicitly so we can exclude ruby 1.8.7 tests for other OS
-  - PUPPET_VERSION=4.0 ONLY_OS=ubuntu-12-x86_64,redhat-6-x86_64,scientific-6-x86_64,centos-6-x86_64,debian-6-x86_64
-  - PUPPET_VERSION=3.5 ONLY_OS=ubuntu-12-x86_64,redhat-6-x86_64,scientific-6-x86_64,centos-6-x86_64,debian-6-x86_64 FUTURE_PARSER=yes TRUSTED_NODE_DATA=yes
-  - PUPPET_VERSION=3.5 ONLY_OS=ubuntu-12-x86_64,redhat-6-x86_64,scientific-6-x86_64,centos-6-x86_64,debian-6-x86_64
-  # Test the rest of the supported platforms
-  - PUPPET_VERSION=4.0 EXCLUDE_OS=centos-7-x86_64,ubuntu-14-x86_64,ubuntu-12-x86_64,redhat-6-x86_64,scientific-6-x86_64,centos-6-x86_64,debian-6-x86_64
-  - PUPPET_VERSION=3.5 EXCLUDE_OS=centos-7-x86_64,ubuntu-14-x86_64,ubuntu-12-x86_64,redhat-6-x86_64,scientific-6-x86_64,centos-6-x86_64,debian-6-x86_64 FUTURE_PARSER=yes TRUSTED_NODE_DATA=yes
-  - PUPPET_VERSION=3.5 EXCLUDE_OS=centos-7-x86_64,ubuntu-14-x86_64,ubuntu-12-x86_64,redhat-6-x86_64,scientific-6-x86_64,centos-6-x86_64,debian-6-x86_64
-  # Only test Puppet 2.7 on ubuntu 12 and centos 6
-  - PUPPET_VERSION=2.7.0 ONLY_OS=ubuntu-12-x86_64,centos-6-x86_64
+  matrix:
+    - PUPPET_VERSION=4.9
 matrix:
   fast_finish: true
-  exclude:
-    # No real support for Ruby 1.9.3 on Puppet 2.x
-    - rvm: 1.9.3
-      env: PUPPET_VERSION=2.7.0 ONLY_OS=ubuntu-12-x86_64,centos-6-x86_64
-    # No support for Ruby 2.0 before Puppet 3.2
-    - rvm: 2.0.0
-      env: PUPPET_VERSION=2.7.0 ONLY_OS=ubuntu-12-x86_64,centos-6-x86_64
-    # No support for Ruby 2.1 before Puppet 3.5
-    - rvm: 2.1.5
-      env: PUPPET_VERSION=2.7.0 ONLY_OS=ubuntu-12-x86_64,centos-6-x86_64
-    # No support for Ruby 1.8.7 on Puppet 4.x
-    - rvm: 1.8.7
-      env: PUPPET_VERSION=4.0 ONLY_OS=centos-7-x86_64,ubuntu-14-x86_64
-    - rvm: 1.8.7
-      env: PUPPET_VERSION=4.0 ONLY_OS=ubuntu-12-x86_64,redhat-6-x86_64,scientific-6-x86_64,centos-6-x86_64,debian-6-x86_64
-    - rvm: 1.8.7
-      env: PUPPET_VERSION=4.0 EXCLUDE_OS=centos-7-x86_64,ubuntu-14-x86_64,ubuntu-12-x86_64,redhat-6-x86_64,scientific-6-x86_64,centos-6-x86_64,debian-6-x86_64
-    # Exclude tests on OS that do not ship with Ruby 1.8.7
-    - rvm: 1.8.7
-      env: PUPPET_VERSION=3.5 ONLY_OS=centos-7-x86_64,ubuntu-14-x86_64
-    - rvm: 1.8.7
-      env: PUPPET_VERSION=3.5 ONLY_OS=centos-7-x86_64,ubuntu-14-x86_64 FUTURE_PARSER=yes TRUSTED_NODE_DATA=yes
-    - rvm: 1.8.7
-      env: PUPPET_VERSION=3.5 EXCLUDE_OS=centos-7-x86_64,ubuntu-14-x86_64,ubuntu-12-x86_64,redhat-6-x86_64,scientific-6-x86_64,centos-6-x86_64,debian-6-x86_64
-    - rvm: 1.8.7
-      env: PUPPET_VERSION=3.5 EXCLUDE_OS=centos-7-x86_64,ubuntu-14-x86_64,ubuntu-12-x86_64,redhat-6-x86_64,scientific-6-x86_64,centos-6-x86_64,debian-6-x86_64 FUTURE_PARSER=yes TRUSTED_NODE_DATA=yes
-bundler_args: --without development
+  include:
+    - rvm: 2.4.1
+      env: PUPPET_VERSION=5.0
+    # Acceptance tests
+    - rvm: 2.3.1
+      dist: trusty
+      env: PUPPET_INSTALL_TYPE=agent BEAKER_debug=true BEAKER_set=docker/centos-6
+      script: bundle exec rake beaker
+      services: docker
+      bundler_args: --without development
+    - rvm: 2.3.1
+      dist: trusty
+      env: PUPPET_INSTALL_TYPE=agent BEAKER_debug=true BEAKER_set=docker/centos-7
+      script: bundle exec rake beaker
+      services: docker
+      bundler_args: --without development
+    - rvm: 2.3.1
+      dist: trusty
+      env: PUPPET_INSTALL_TYPE=agent BEAKER_debug=true BEAKER_set=docker/debian-8
+      script: bundle exec rake beaker
+      services: docker
+      bundler_args: --without development
+bundler_args: --without system_tests development
 sudo: false

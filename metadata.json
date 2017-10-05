@@ -1,6 +1,6 @@
 {
   "name": "theforeman-tftp",
-  "version": "1.6.1",
+  "version": "3.0.1",
   "author": "theforeman",
   "summary": "TFTP server configuration",
   "license": "GPL-3.0+",
@@ -16,17 +16,17 @@
   "dependencies": [
     {
       "name": "puppetlabs/stdlib",
-      "version_requirement": ">= 2.3.0 < 5.0.0"
+      "version_requirement": ">= 4.13.1 < 5.0.0"
     },
     {
       "name": "puppetlabs/xinetd",
-      "version_requirement": ">= 1.1.0 < 2.0.0"
+      "version_requirement": ">= 1.1.0 < 4.0.0"
     }
   ],
   "requirements": [
     {
       "name": "puppet",
-      "version_requirement": ">= 2.7.0 < 5.0.0"
+      "version_requirement": ">= 4.9.0 < 6.0.0"
     }
   ],
   "operatingsystem_support": [
@@ -54,13 +54,12 @@
     {
       "operatingsystem": "Fedora",
       "operatingsystemrelease": [
-        "19"
+        "21"
       ]
     },
     {
       "operatingsystem": "Debian",
       "operatingsystemrelease": [
-        "6",
         "7",
         "8"
       ]
@@ -69,7 +68,8 @@
       "operatingsystem": "Ubuntu",
       "operatingsystemrelease": [
         "12.04",
-        "14.04"
+        "14.04",
+        "16.04"
       ]
     },
     {
@@ -86,6 +86,9 @@
         "3.8",
         "4"
       ]
+    },
+    {
+      "operatingsystem": "Archlinux"
     }
   ]
 }

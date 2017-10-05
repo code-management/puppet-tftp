@@ -1,5 +1,28 @@
 # Changelog
 
+## 3.0.0
+* Drop Puppet 3 support
+* Add handling for some buggy PXE stacks 
+
+## 2.0.0
+* Drop support for Ruby 1.8.7
+
+## 1.8.2
+* Fix strict variables compatibility on Arch Linux
+
+## 1.8.1
+* Mark compatibility with puppetlabs/xinetd 2.x
+
+## 1.8.0
+* Add support for Archlinux
+* Add package, syslinux_package parameters to override package names
+* Fix service resource provider under Ubuntu 16.04
+
+## 1.7.0
+* Add support for Ubuntu 16.04
+* Support Puppet 3.0 minimum
+* Support Fedora 21, remove Debian 6 (Squeeze)
+
 ## 1.6.0
 * Add FreeBSD support
 * Support Puppet 4 and future parser
